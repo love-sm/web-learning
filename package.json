@@ -1,0 +1,28 @@
+{
+  "name": "web-learning",
+  "version": "1.0.0",
+  "description": "web前端知识汇总",
+  "main": "index.js",
+  "scripts": {
+    "lint:fix": "eslint --ext .js . --fix",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/love-sm/web-learning.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/love-sm/web-learning/issues"
+  },
+  "homepage": "https://github.com/love-sm/web-learning#readme",
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "husky": "^9.0.11"
+  }
+}
