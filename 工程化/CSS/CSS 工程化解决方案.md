@@ -452,3 +452,219 @@ module.exports = {
 
 ## Tailwind CSS 劣势
 和Bootstrap类似，学习曲线陡峭依然是 Tailwind CSS的一个劣势，在使用它的早期阶段，会经常需要查阅官方资料，寻找某个 CSS 属性对应的 class 是什么。
+
+## 最佳实践
+### 使用编辑器插件
+Visual Studio Code 的官方[Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)扩展通过为用户提供自动完成、语法突出显示和 linting 等高级功能增强了 Tailwind 开发体验。
+
+![](https://tailwindcss.com/_next/static/media/intellisense.c22de782.png)
+
+### 使用PostCss作为处理器
+> 强烈考虑依赖其他 PostCSS 插件来添加您使用的预处理器功能，而不是和 Tailwind 与 Sass、Less 或 Stylus 等预处理工具一起使用。这样能获得更快的编辑速度和 更友善Tailwind 特性支持。
+### 配置构建
+首先安装npm插件
+```shell
+npm install -D postcss-import
+```
+然后将其添加为 PostCSS 配置中的**第一个插件**：
+```js
+// postcss.config.js
+module.exports = {
+  plugins: {
+    'postcss-import': {},
+    tailwindcss: {},
+    autoprefixer: {},
+  }
+}
+```
+`postcss-import`严格遵守 CSS 规范，并且不允许@import在文件最顶部以外的任何地方使用语句。
+
+1. 使用单独的文件来导入和实际的 CSS
+```css
+/* components.css */
+@import "./components/buttons.css";
+@import "./components/card.css";
+```
+```css
+/* components/buttons.css */
+.btn {
+  padding: theme('spacing.4') theme('spacing.2');
+  /* ... */
+}
+```
+```css
+/* components/card.css */
+.card {
+  padding: theme('spacing.4');
+  /* ... */
+}
+```
+2. 在包含@tailwind声明的主 CSS 文件中使用。
+```css
+@import "tailwindcss/base";
+@import "./custom-base-styles.css";
+
+@import "tailwindcss/components";
+@import "./custom-components.css";
+
+@import "tailwindcss/utilities";
+@import "./custom-utilities.css";
+```
+
+### 使用嵌套语法
+使用`tailwindcss/nesting`插件，这是一个 PostCSS 插件，它包装了postcss-nested或postcss-nesting并充当兼容层，以确保您选择的嵌套插件正确理解 Tailwind 的自定义语法。
+```js
+// postcss.config.js
+module.exports = {
+  plugins: {
+    'postcss-import': {},
+    'tailwindcss/nesting': {},
+    tailwindcss: {},
+    autoprefixer: {},
+  }
+}
+```
+### 使用变量
+CSS 变量（正式称为自定义属性）具有非常好的浏览器支持，因此您根本不需要预处理器来使用变量。
+```css
+:root {
+  --theme-color: #52b3d0;
+}
+
+/* ... */
+
+.btn {
+  background-color: var(--theme-color);
+  /* ... */
+}
+```
+还可以使用`them()函数`来访问 Tailwind 变量
+```css
+.btn {
+  background-color: theme('colors.blue.500');
+  padding: theme('spacing.2') theme('spacing.4');
+  /* ... */
+}
+```
+### 兼容前缀
+为了自动管理 CSS 中的供应商前缀，您应该使用Autoprefixer。
+```shell
+npm install -D autoprefixer
+```
+然后将其添加到 PostCSS 配置中的插件列表的最末尾：
+```js
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  }
+}
+```
+### 生产优化
+建议使用cssnano之类的工具最小化您的 CSS，并使用Brotli压缩您的 CSS 。
+
+```js
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+    ...(process.env.NODE_ENV === 'production' ? { cssnano: {} } : {})
+  }
+}
+```
+
+### 重复使用样式
+```html
+<div>
+  <div class="flex items-center space-x-2 text-base">
+    <h4 class="font-semibold text-slate-900">Contributors</h4>
+    <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">204</span>
+  </div>
+  <div class="mt-3 flex -space-x-2 overflow-hidden">
+    <img class="inline-block h-12 w-12 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt=""/>
+    <img class="inline-block h-12 w-12 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt=""/>
+    <img class="inline-block h-12 w-12 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2.25&w=256&h=256&q=80" alt=""/>
+    <img class="inline-block h-12 w-12 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt=""/>
+    <img class="inline-block h-12 w-12 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1517365830460-955ce3ccd263?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt=""/>
+  </div>
+  <div class="mt-3 text-sm font-medium">
+    <a href="#" class="text-blue-500">+ 198 others</a>
+  </div>
+</div>
+```
+当出现上述重复的img标签首先考虑提取组件，或者在循环中处理。但是也支持使用`@apply`指令提取重复的CSS类。
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn-primary {
+    @apply py-2 px-5 bg-violet-500 text-white font-semibold rounded-full shadow-md hover:bg-violet-700 focus:outline-none focus:ring focus:ring-violet-400 focus:ring-opacity-75;
+  }
+}
+```
+
+`避免过早抽象`，不然，无论你做什么，都不要@apply只为了让事情看起来“更干净”而使用。
+
+如果你开始将@apply其用于一切，那么基本上你只是再次编写 CSS，并抛弃 Tailwind 为你提供的所有工作流程和可维护性优势。
+
+### 添加自定义样式
+1. 可以在配置文件中添加配置，[定义主题](https://tailwindcss.com/docs/theme)
+2. 可以使用任意值，例如
+```html
+<div class="top-[117px]">
+  <!-- ... -->
+</div>
+```
+3. 自定义css规则
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.my-custom-style {
+  /* ... */
+}
+```
+为了获得更多功能，你还可以使用@layer指令向 Tailwind 的base、components和utilities层添加样式：
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .my-custom-style {
+    /* ... */
+  }
+}
+```
+tips： 为什么有分层的概念？
+
+在 CSS 中，当两个选择器具有相同的特殊性时，样式表中规则的顺序决定哪个声明获胜：
+```css
+.btn {
+  background: blue;
+  /* ... */
+}
+
+.bg-black {
+  background: black;
+}
+```
+这里，两个按钮都将是黑色，因为CSS 中的.bg-black代码如下：.btn
+```css
+<button class="btn bg-black">...</button>
+<button class="bg-black btn">...</button>
+```
+为了管理这一点，Tailwind 将其生成的样式组织成三个不同的“层”——这是由ITCSS推广的概念。
+
+- base层用于重置规则或应用于纯 HTML 元素的默认样式等。适合添加基本样式。
+- components层用于您希望能够使用实用程序覆盖的基于类的样式。添加组件类，例如复用css的封装、定义第三方组件样式。
+- utilities层适用于小型、单一用途的类，其应始终优先于任何其他样式。项目内自定义封装的。
+
+明确这一点可以更容易地理解你的样式如何相互作用，并且使用指令@layer可以让你控制最终的声明顺序，同时仍然以你喜欢的方式组织你的实际代码。
+
+### 功能与指令
+[详见](https://tailwindcss.com/docs/functions-and-directives)
